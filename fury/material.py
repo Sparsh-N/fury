@@ -351,3 +351,17 @@ def manifest_standard(actor, ambient_level=0, ambient_color=(1, 1, 1),
                       'material will not be applied.')
         return
 
+# fix
+def wireframe(actor):
+    actor.GetProperty().SetRepresentationToWireframe()
+    actor.GetProperty().BackfaceCullingOff()
+    actor.GetProperty().FrontfaceCullingOff()
+
+# fix
+def culling(actor, back, front):
+    if actor.GetProperty().GetBackfaceCulling() != back:
+        actor.GetProperty().SetBackfaceCulling(back)
+    if actor.GetProperty().GetFrontfaceCulling() != front:
+        actor.GetProperty().SetFrontfaceCulling(front)
+
+    

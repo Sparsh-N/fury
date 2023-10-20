@@ -45,7 +45,7 @@ scene = window.Scene()
 scene.add(arrow_actor)
 scene.add(arrow_actor2)
 
-interactive = True
+interactive = False
 
 if interactive:
     window.show(scene, size=(600, 600))

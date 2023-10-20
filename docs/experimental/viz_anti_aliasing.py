@@ -90,5 +90,4 @@ def test_streamtube_and_line_actors():
     npt.assert_equal(strips4 > 0, True)
     npt.assert_equal(strips5 == 0, True)
 
-
 test_streamtube_and_line_actors()

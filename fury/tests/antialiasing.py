@@ -1,17 +1,9 @@
-import itertools
-import os
-from tempfile import TemporaryDirectory as InTemporaryDirectory
-
 import numpy as np
 import numpy.testing as npt
-import pytest
-from scipy.ndimage import center_of_mass
-
 from fury import actor
 from fury import primitive as fp
 from fury import shaders, window
-from fury.actor import grid
-from fury.decorators import skip_linux, skip_osx, skip_win
+
 
 def simulated_bundle(no_streamlines=10, waves=False):
     t = np.linspace(20, 80, 200)
@@ -25,6 +17,8 @@ def simulated_bundle(no_streamlines=10, waves=False):
         bundle.append(pts)
 
     return bundle
+
+
 
 def test_streamtube_and_line_actors():
     scene = window.Scene()
@@ -40,16 +34,18 @@ def test_streamtube_and_line_actors():
     c = actor.line(lines, colors, spline_subdiv=5, linewidth=3)
     scene.add(c)
 
-    bundle = simulated_bundle(no_streamlines=200, waves=True)
-    bundle_actor = actor.line(bundle,spline_subdiv=10,linewidth=3)
+    bundle = simulated_bundle(no_streamlines=1000, waves=True)
+
+    bundle_actor = actor.line(bundle, spline_subdiv=5, linewidth=3)
 
     # create streamtubes of the same lines and shift them a bit
     c2 = actor.streamtube(lines, colors, linewidth=0.1)
     c2.SetPosition(2, 0, 0)
     scene.add(c2)
-
     scene.add(bundle_actor)
+
     window.show(scene)
+
     db = 1
 
     arr = window.snapshot(scene)
@@ -93,5 +89,6 @@ def test_streamtube_and_line_actors():
 
     npt.assert_equal(strips4 > 0, True)
     npt.assert_equal(strips5 == 0, True)
+
 
 test_streamtube_and_line_actors()

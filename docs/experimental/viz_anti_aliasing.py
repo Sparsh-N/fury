@@ -3,7 +3,6 @@ import numpy.testing as npt
 from fury import actor
 from fury import primitive as fp
 from fury import shaders, window
-from fury.lib import (RenderWindow)
 
 
 def simulated_bundle(no_streamlines=10, waves=False):
@@ -18,6 +17,8 @@ def simulated_bundle(no_streamlines=10, waves=False):
         bundle.append(pts)
 
     return bundle
+
+
 
 def test_streamtube_and_line_actors():
     scene = window.Scene()
@@ -43,9 +44,7 @@ def test_streamtube_and_line_actors():
     scene.add(c2)
     scene.add(bundle_actor)
 
-    # window.antialiasing(scene, window.ShowManager.window, multi_samples=0)
-    
-    window.show(scene, multi_samples=10000, order_transparent=True,occlusion_ratio=1.0)
+    window.show(scene)
 
     db = 1
 

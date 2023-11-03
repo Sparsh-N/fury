@@ -1,9 +1,13 @@
 import numpy as np
 import numpy.testing as npt
+import vtk
+from vtk import vtkGaussianBlurPass, vtkCameraPass, vtkDefaultPass, vtkLightsPass, vtkRenderPassCollection, vtkSequencePass
 from fury import actor
 from fury import primitive as fp
 from fury import shaders, window
+from fury.shaders import shader_to_actor, add_shader_callback
 
+# TODO: Luke's Shader Testing -> SPAA? Lanzcos?
 
 def simulated_bundle(no_streamlines=10, waves=False):
     t = np.linspace(20, 80, 200)
@@ -18,7 +22,25 @@ def simulated_bundle(no_streamlines=10, waves=False):
 
     return bundle
 
+vertex_shader_code_decl = """"
+    out vec4 myVertexCV;
+    """
 
+vertex_shader_code_impl = """
+    myVertexVC = vertexMC;
+    """
+
+frag_shader_code_decl = """
+    varying vec4 myVertexVC;
+    """
+
+frag_shader_code_impl = """
+    vec2 iResolution = vec2(1024,720);
+    fragOuput0 = vec4(1.0, 0.0, 0.0, fragOutput0.a); 
+    """
+
+def shader_callback(_caller, _event, calldata=None):
+    program = calldata
 
 def test_streamtube_and_line_actors():
     scene = window.Scene()
@@ -28,21 +50,55 @@ def test_streamtube_and_line_actors():
 
     lines = [line1, line2]
     colors = np.array([[1, 0, 0], [0, 0, 1.0]])
-    c = actor.line(lines, colors, linewidth=3)
-    scene.add(c)
+    # c = actor.line(lines, colors, linewidth=3)
+    # scene.add(c)
 
-    c = actor.line(lines, colors, spline_subdiv=5, linewidth=3)
-    scene.add(c)
+    # c = actor.line(lines, colors, spline_subdiv=5, linewidth=3)
+    # scene.add(c)
 
-    bundle = simulated_bundle(no_streamlines=1000, waves=True)
+    bundle = simulated_bundle(no_streamlines=500, waves=True)
 
-    bundle_actor = actor.line(bundle, spline_subdiv=5, linewidth=3)
+    bundle_actor = actor.line(bundle, colors=(255,120,30), spline_subdiv=500, linewidth=3, lod=True, fake_tube=False)
 
+    # bundle_actor.GetProperty().SetRepresentationToPoints()
+    bundle_actor.GetPropertyKeys()
+
+    # print(bundle_actor.GetLODMappers())
+    # print(bundle_actor.GetNumberOfCloudPoints())
+    
+    actor_mappers = bundle_actor.GetLODMappers()
+    # bundle_actor.GetProperty().SetRepresentationToWireframe()
+    # mapper = bundle_actor.GetMapper()
+
+    # shader_to_actor(bundle_actor, 'vertex', impl_code=vertex_shader_code_impl, decl_code = vertex_shader_code_decl)
+
+    # shader_to_actor(bundle_actor, 'fragment',decl_code=frag_shader_code_decl)
+    # shader_to_actor(bundle_actor, 'fragment', impl_code=frag_shader_code_impl, block='light')
+
+    # add_shader_callback(bundle_actor, shader_callback)
     # create streamtubes of the same lines and shift them a bit
-    c2 = actor.streamtube(lines, colors, linewidth=0.1)
-    c2.SetPosition(2, 0, 0)
-    scene.add(c2)
+    # c2 = actor.streamtube(lines, colors, linewidth=0.1)
+    # c2.SetPosition(2, 0, 0)
+    # scene.add(c2)
     scene.add(bundle_actor)
+    a = vtkDefaultPass()
+    c = vtkLightsPass()
+
+    d = vtkRenderPassCollection()
+    d.AddItem(a)
+    d.AddItem(c)
+
+    e = vtkSequencePass()
+    e.SetPasses(d)
+
+    b = vtkCameraPass()
+    b.SetDelegatePass(e)
+
+    f = vtkGaussianBlurPass()
+    f.SetDelegatePass(b)
+
+    scene.SetPass(b)
+    scene.SetPass(f)
 
     window.show(scene)
 

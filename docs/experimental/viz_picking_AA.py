@@ -13,7 +13,8 @@ When the objects are picked they will change size and color.
 
 import numpy as np
 
-from fury import actor, pick, ui, utils, window
+import vtk
+from fury import actor, ui, utils, window
 
 centers = 0.2 * np.array([[0, 0, 0], [100, 0, 0], [200, 0, 0.0]])
 colors = np.array([[0.8, 0, 0], [0, 0.8, 0], [0, 0, 0.8]])
@@ -48,13 +49,24 @@ directions = np.array(
     ]
 )
 fury_actor = actor.cube(centers, directions, colors, scales=radii)
+# fury_actor.GetProperty().SetRepresentationToSurface()
 fury_actor.GetProperty().SetRepresentationToWireframe()
+fury_actor.GetProperty().SetInterpolationToFlat()
+# fury_actor.GetProperty().EdgeVisibilityOn()
+# fury_actor.GetProperty().SetEdgeColor(0,0,0)
 fury_actor.GetProperty().SetLineWidth(5)
-## fury_actor.GetProperty().ShadingOff()
+# fury_actor.GetProperty().ShadingOff()
 # fury_actor.GetProperty().SetRenderLinesAsTubes(True)
+
+#Tests with mapper
+fury_actor.GetMapper().ScalarVisibilityOff()
+# scene.GetRenderWindow().GetZbufferData()
+
+# PBR
+# fury_actor.GetProperty().SetSpecular(1.0)
 # fury_actor.GetProperty().SetAmbient(1)
 
-# fury_actor2 = actor.cube(0.2 * np.array([[-100,0,0],[-200,0,0],[-300,0,0]]),directions, colors, scales=radii)
+fury_actor2 = actor.cube(0.2 * np.array([[-100,0,0],[-200,0,0],[-300,0,0]]),directions, colors, scales=radii)
 # fury_actor2.GetProperty().SetRepresentationToWireframe()
 # fury_actor2.GetProperty().SetAmbient(1)
 # scene.add(fury_actor2)
@@ -81,82 +93,61 @@ scene.add(fury_actor)
 scene.reset_camera()
 
 ###############################################################################
-# Create the Picking manager
-
-pickm = pick.PickingManager()
-
-###############################################################################
-# Time to make the callback which will be called when we pick an object
-
-
-def left_click_callback(obj, event):
-
-    # Get the event position on display and pick
-
-    event_pos = pickm.event_position(showm.iren)
-    picked_info = pickm.pick(event_pos, showm.scene)
-
-    vertex_index = picked_info['vertex']
-
-    # Calculate the objects index
-
-    object_index = int(np.floor((vertex_index / num_vertices) * num_objects))
-
-    # Find how many vertices correspond to each object
-    sec = int(num_vertices / num_objects)
-
-    if not selected[object_index]:
-        scale = 6 / 5
-        color_add = np.array([30, 30, 30], dtype='uint8')
-        selected[object_index] = True
-    else:
-        scale = 5 / 6
-        color_add = np.array([-30, -30, -30], dtype='uint8')
-        selected[object_index] = False
-
-    # Update vertices positions
-    vertices[object_index * sec : object_index * sec + sec] = (
-        scale
-        * (
-            vertices[object_index * sec : object_index * sec + sec]
-            - centers[object_index]
-        )
-        + centers[object_index]
-    )
-
-    # Update colors
-    vcolors[object_index * sec : object_index * sec + sec] += color_add
-
-    # Tell actor that memory is modified
-    utils.update_actor(fury_actor)
-
-    face_index = picked_info['face']
-
-    # Show some info
-    text = 'Object ' + str(object_index) + '\n'
-    text += 'Vertex ID ' + str(vertex_index) + '\n'
-    text += 'Face ID ' + str(face_index) + '\n'
-    text += 'World pos ' + str(np.round(picked_info['xyz'], 2)) + '\n'
-    text += 'Actor ID ' + str(id(picked_info['actor']))
-    text_block.message = text
-    showm.render()
-
-
-###############################################################################
-# Bind the callback to the actor
-
-fury_actor.AddObserver('LeftButtonPressEvent', left_click_callback, 1)
-
-###############################################################################
 # Make the window appear
 
 scene.fxaa_off()
 # scene.projection('parallel')
 
-showm = window.ShowManager(scene, size=(1024, 768), multi_samples=0, order_transparent=True)
+showm = window.ShowManager(scene, size=(1024, 768), multi_samples=8, order_transparent=True)
+
+#####################################
+
+"""
+print("Step 0")
+z_buffer = vtk.vtkFloatArray()
+showm.window.GetZbufferData(0,0,1023,767, z_buffer)
+
+print("Step 1")
+#####
+image = vtk.vtkImageData()
+image.SetDimensions(1024, 768, 1)
+image.SetScalarTypeToFloat()
+image.GetPointData().SetScalars(z_buffer)
+
+print("Step 2")
+# Create a texture from the vtkImageData object
+texture = vtk.vtkTexture()
+texture.SetInputData(image)
+
+
+print("Step 3")
+# Create a quad that fills the render window
+quad = vtk.vtkPlaneSource()
+quad.SetPoint1(1024, 0, 0)
+quad.SetPoint2(0, 768, 0)
+quad.SetOrigin(0, 0, 0)
+
+print("Step 4")
+# Map the texture onto the quad
+quad_mapper = vtk.vtkPolyDataMapper()
+quad_mapper.SetInputConnection(quad.GetOutputPort())
+
+
+print("Step 5")
+quad_actor = vtk.vtkActor()
+quad_actor.SetMapper(quad_mapper)
+quad_actor.SetTexture(texture)
+
+print("Step 6")
+scene.add(quad_actor)
+"""
+############################
 
 showm.initialize()
-print(showm.scene.GetActiveCamera().GetParallelProjection())
+
+print(showm.window.GetAlphaBitPlanes())
+#####
+# print(showm.scene.GetActiveCamera().GetParallelProjection())
 
 # print(showm.window.GetDebug())
 

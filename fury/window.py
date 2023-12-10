@@ -285,6 +285,19 @@ class Scene(OpenGLRenderer):
     def fxaa_off(self):
         self.SetUseFXAA(False)
 
+    def ssaa(self):
+        """Turn SSAA on. Uses VTK Render/Sequence Pass, and SSAA Pass."""
+        default_pass = vtkRenderPassCollection().AddItem(vtkDefaultPass())
+        sequence_pass = vtkSequencePass().SetPasses(default_pass)
+
+        ssaa_pass = vtkSSAAPass()
+        ssaa_pass.SetDelegatePass(sequence_pass)
+        self.SetPass(ssaa_pass)
+
+    def msaa(self):
+        """Turn MSAA on. Uses VTK Render/Sequence Pass, and MSAA Pass."""
+        # TODO: Add support for MSAA
+
 
 class ShowManager:
     """Class interface between the scene, the window and the interactor."""

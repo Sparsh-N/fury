@@ -25,6 +25,11 @@ from fury.lib import (
     Skybox,
     Volume,
     WindowToImageFilter,
+    RenderPassCollection,
+    DefaultRenderPass,
+    SequencePass,
+    SSAAPass,
+    CameraPass,
     colors,
     numpy_support,
 )
@@ -285,13 +290,17 @@ class Scene(OpenGLRenderer):
     def fxaa_off(self):
         self.SetUseFXAA(False)
 
-    def ssaa(self):
+    def ssaa_on(self):
         """Turn SSAA on. Uses VTK Render/Sequence Pass, and SSAA Pass."""
-        default_pass = vtkRenderPassCollection().AddItem(vtkDefaultPass())
-        sequence_pass = vtkSequencePass().SetPasses(default_pass)
+        collection_pass = RenderPassCollection()
+        collection_pass.AddItem(DefaultRenderPass())
+        sequence_pass = SequencePass()
+        sequence_pass.SetPasses(collection_pass)
+        camera_pass = CameraPass()
+        camera_pass.SetDelegatePass(sequence_pass)
 
-        ssaa_pass = vtkSSAAPass()
-        ssaa_pass.SetDelegatePass(sequence_pass)
+        ssaa_pass = SSAAPass()
+        ssaa_pass.SetDelegatePass(camera_pass)
         self.SetPass(ssaa_pass)
 
     def msaa(self):

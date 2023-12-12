@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.testing as npt
 import vtk
-from vtk import vtkGaussianBlurPass, vtkCameraPass, vtkDefaultPass, vtkLightsPass, vtkRenderPassCollection, vtkSequencePass, vtkSSAAPass
+from vtk import vtkHiddenLineRemovalPass, vtkCameraPass, vtkDefaultPass, vtkLightsPass, vtkRenderPassCollection, vtkSequencePass, vtkSSAAPass
 from fury import actor
 from fury import primitive as fp
 from fury import shaders, window
@@ -69,7 +69,7 @@ def test_streamtube_and_line_actors():
 
     bundle = simulated_bundle(no_streamlines=500, waves=True)
 
-    bundle_actor = actor.line(bundle, colors=(255,120,30), spline_subdiv=500, linewidth=5, lod=True, fake_tube=False)
+    bundle_actor = actor.line(bundle, colors=(255,120,30), spline_subdiv=500, linewidth=2, lod=True, fake_tube=False)
 
     # bundle_actor.GetProperty().SetRepresentationToPoints()
     bundle_actor.GetPropertyKeys()
@@ -94,27 +94,28 @@ def test_streamtube_and_line_actors():
     # scene.add(c2)
     """
     scene.add(bundle_actor)
-    scene.ssaa_on()
+    # scene.ssaa_on()
     
-    # a = vtkDefaultPass()
-    # c = vtkLightsPass()
+    a = vtkDefaultPass()
+    c = vtkLightsPass()
     
-    # d = vtkRenderPassCollection()
-    # d.AddItem(a)
-    # # d.AddItem(c)
+    d = vtkRenderPassCollection()
+    d.AddItem(a)
+    d.AddItem(c)
 
-    # e = vtkSequencePass()
-    # e.SetPasses(d)
+    e = vtkSequencePass()
+    e.SetPasses(d)
 
-    # b = vtkCameraPass()
-    # b.SetDelegatePass(e)
+    b = vtkCameraPass()
+    b.SetDelegatePass(e)
 
-    # f = vtkSSAAPass()
-    # f.SetDelegatePass(b)
+    f = vtkSSAAPass()
+    f.SetDelegatePass(b)
 
-    # scene.SetPass(b)
+    scene.SetPass(b)
     scene.SetPass(f)
 
+    # window.antialiasing()
     window.show(scene)
 
     # db = 1

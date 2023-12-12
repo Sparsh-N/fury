@@ -161,7 +161,7 @@ Shader = roglvtk.vtkShader
 RenderPassCollection = roglvtk.vtkRenderPassCollection
 #: class for DefaultRenderPass
 DefaultRenderPass = roglvtk.vtkDefaultPass
-#: ckass for SequencePass
+#: class for SequencePass
 SequencePass = roglvtk.vtkSequencePass
 #: class for SSAAPass
 SSAAPass = roglvtk.vtkSSAAPass
